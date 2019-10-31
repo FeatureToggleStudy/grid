@@ -4,6 +4,7 @@ import java.net.URI
 import java.util.UUID
 
 import com.gu.mediaservice.model._
+import com.gu.mediaservice.model.leases.LeasesByMedia
 import com.gu.mediaservice.model.usage.{DigitalUsage, PublishedUsageStatus, Usage}
 import org.joda.time.DateTime
 
