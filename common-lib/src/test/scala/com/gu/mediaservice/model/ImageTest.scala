@@ -3,6 +3,7 @@ package com.gu.mediaservice.model
 import java.net.URI
 import java.util.UUID
 
+import com.gu.mediaservice.model.leases.{AllowSyndicationLease, DenySyndicationLease, LeasesByMedia, MediaLease}
 import com.gu.mediaservice.model.usage._
 import org.joda.time.DateTime
 import org.scalatest.{FunSpec, Matchers}

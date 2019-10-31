@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.gu.mediaservice.model
 import com.gu.mediaservice.model._
+import com.gu.mediaservice.model.leases.MediaLease
 import com.whisk.docker.impl.spotify.DockerKitSpotify
 import com.whisk.docker.scalatest.DockerTestKit
 import com.whisk.docker.{DockerContainer, DockerKit}
@@ -26,6 +27,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
   val fiveSeconds = Duration(5, SECONDS)
 
   def ES: ElasticSearchVersion
+
   def esContainer: Option[DockerContainer]
 
   override def beforeAll {
@@ -34,7 +36,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
   }
 
   override def afterAll: Unit = {
-   super.afterAll()
+    super.afterAll()
   }
 
   final override def dockerContainers: List[DockerContainer] =
@@ -269,7 +271,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
         reloadedImage(id).get.exports.isEmpty shouldBe true
         val exports = List(crop)
 
-        Await.result(Future.sequence(ES.updateImageExports(id, JsDefined(Json.toJson(exports)))), fiveSeconds)  // TODO rename to add
+        Await.result(Future.sequence(ES.updateImageExports(id, JsDefined(Json.toJson(exports)))), fiveSeconds) // TODO rename to add
 
         reloadedImage(id).get.exports.nonEmpty shouldBe true
         reloadedImage(id).get.exports.head.id shouldBe crop.id
@@ -302,7 +304,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
         Await.result(Future.sequence(ES.indexImage(id, Json.toJson(image))), fiveSeconds)
         reloadedImage(id).get.leases.leases.isEmpty shouldBe true
 
-        val lease = model.MediaLease(
+        val lease = model.leases.MediaLease(
           id = Some(UUID.randomUUID().toString),
           leasedBy = None,
           notes = Some("A test lease"),
@@ -318,7 +320,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
       }
 
       "can remove image lease" in {
-        val lease = model.MediaLease(id = Some(UUID.randomUUID().toString), leasedBy = None, notes = Some("A test lease"), mediaId = UUID.randomUUID().toString)
+        val lease = model.leases.MediaLease(id = Some(UUID.randomUUID().toString), leasedBy = None, notes = Some("A test lease"), mediaId = UUID.randomUUID().toString)
         val id = UUID.randomUUID().toString
         val image = createImageForSyndication(id, true, Some(DateTime.now()), lease = Some(lease))
         Await.result(Future.sequence(ES.indexImage(id, Json.toJson(image))), fiveSeconds)
@@ -330,7 +332,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
       }
 
       "removing a lease should update the leases last modified time" in {
-        val lease = model.MediaLease(id = Some(UUID.randomUUID().toString), leasedBy = None, notes = Some("A test lease"), mediaId = UUID.randomUUID().toString)
+        val lease = model.leases.MediaLease(id = Some(UUID.randomUUID().toString), leasedBy = None, notes = Some("A test lease"), mediaId = UUID.randomUUID().toString)
         val timeBeforeEdit = DateTime.now
         val id = UUID.randomUUID().toString
         val image = createImageForSyndication(
@@ -406,13 +408,13 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
 
         val existingUsage = usage(id = "existing")
         Await.result(Future.sequence(ES.updateImageUsages(id, JsDefined(Json.toJson(List(existingUsage))), asJsLookup(DateTime.now))), fiveSeconds)
-        reloadedImage(id).get.usages.head.id shouldEqual("existing")
+        reloadedImage(id).get.usages.head.id shouldEqual ("existing")
 
         val moreRecentUsage = usage(id = "most-recent")
         Await.result(Future.sequence(ES.updateImageUsages(id, JsDefined(Json.toJson(List(moreRecentUsage))), asJsLookup(DateTime.now))), fiveSeconds)
 
         reloadedImage(id).get.usages.size shouldBe 1
-        reloadedImage(id).get.usages.head.id shouldEqual("most-recent")
+        reloadedImage(id).get.usages.head.id shouldEqual ("most-recent")
       }
 
       "should ignore usage update requests when the proposed last modified date is older than the current" in {
@@ -427,7 +429,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
         val staleLastModified = DateTime.now.minusWeeks(1)
         Await.result(Future.sequence(ES.updateImageUsages(id, JsDefined(Json.toJson(List(staleUsage))), asJsLookup(staleLastModified))), fiveSeconds)
 
-        reloadedImage(id).get.usages.head.id shouldEqual("recent")
+        reloadedImage(id).get.usages.head.id shouldEqual ("recent")
       }
     }
 
@@ -648,7 +650,7 @@ trait ElasticSearchTestBase extends FreeSpec with Matchers with Fixtures with Be
   }
 
   private def indexedImage(id: String) = {
-    Thread.sleep(1000)  // TODO use eventually clause
+    Thread.sleep(1000) // TODO use eventually clause
     Await.result(ES.getImage(id), fiveSeconds)
   }
 
