@@ -101,8 +101,7 @@ class ImageTest extends FunSpec with Matchers {
         digitalUsage
       )
 
-      val leaseByMedia = LeasesByMedia(
-        lastModified = None,
+      val leaseByMedia = LeasesByMedia.build(
         leases = List(MediaLease(
           id = None,
           leasedBy = None,
@@ -139,16 +138,13 @@ class ImageTest extends FunSpec with Matchers {
   it("should be QueuedForSyndication if there is an allow syndication lease and no syndication usage") {
     val imageId = UUID.randomUUID().toString
 
-    val leaseByMedia = LeasesByMedia(
-      lastModified = None,
-      leases = List(MediaLease(
-        id = None,
-        leasedBy = None,
-        access = AllowSyndicationLease,
-        notes = None,
-        mediaId = imageId
-      ))
-    )
+    val leaseByMedia = LeasesByMedia.build(leases = List(MediaLease(
+      id = None,
+      leasedBy = None,
+      access = AllowSyndicationLease,
+      notes = None,
+      mediaId = imageId
+    )))
 
     val usages = List(
       digitalUsage
@@ -167,8 +163,7 @@ class ImageTest extends FunSpec with Matchers {
   it("should be BlockedForSyndication if there is a deny syndication lease and no syndication usage") {
     val imageId = UUID.randomUUID().toString
 
-    val leaseByMedia = LeasesByMedia(
-      lastModified = None,
+    val leaseByMedia = LeasesByMedia.build(
       leases = List(MediaLease(
         id = None,
         leasedBy = None,

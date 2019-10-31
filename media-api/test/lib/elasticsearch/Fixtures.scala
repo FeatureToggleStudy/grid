@@ -75,10 +75,7 @@ trait Fixtures {
 
     val syndicationRights = SyndicationRights(rcsPublishDate, Nil, rights)
 
-    val leaseByMedia = lease.map(l => LeasesByMedia(
-      lastModified = None,
-      leases = List(l)
-    ))
+    val leaseByMedia = lease.map(l => LeasesByMedia.build(List(l)))
 
     createImage(id, usageRights, Some(syndicationRights), leaseByMedia, usages, fileMetadata)
   }
