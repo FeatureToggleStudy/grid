@@ -17,7 +17,8 @@ import play.api.libs.json.{JodaReads, Json}
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class ThrallEventConsumer(es: ElasticSearchVersion,
+class ThrallEventConsumer(
+  es: ElasticSearchVersion,
                           thrallMetrics: ThrallMetrics,
                           store: ThrallStore,
                           metadataEditorNotifications: MetadataEditorNotifications,
@@ -29,12 +30,12 @@ class ThrallEventConsumer(es: ElasticSearchVersion,
     ExecutionContext.fromExecutor(Executors.newCachedThreadPool)
 
   override def initialize(shardId: String): Unit = {
-    Logger.info(s"Initialized an event processor for shard $shardId")
+    println(s"Initialized an event processor for shard $shardId")
   }
 
   override def processRecords(records: util.List[Record], checkpointer: IRecordProcessorCheckpointer): Unit = {
     import scala.collection.JavaConverters._
-    Logger.info("Processing kinesis record batch of size: " + records.size)
+    println("Processing kinesis record batch of size: " + records.size)
 
     try {
       records.asScala.foreach { r =>
@@ -47,13 +48,13 @@ class ThrallEventConsumer(es: ElasticSearchVersion,
           JsonByteArrayUtil.fromByteArray[UpdateMessage](r.getData.array) map { updateMessage =>
             val timestamp = r.getApproximateArrivalTimestamp
 
-            Logger.info(s"Received ${updateMessage.subject} message at $timestamp")(updateMessage.toLogMarker)
+            println(s"Received ${updateMessage.subject} message at $timestamp")
 
             messageProcessor.chooseProcessor(updateMessage).map { p =>
               val ThirtySeconds = Duration(30, SECONDS)
               val eventuallyAppliedUpdate: Future[Any] = p.apply(updateMessage)
               eventuallyAppliedUpdate.map { _ =>
-                Logger.info(s"Completed processing of ${updateMessage.subject} message")(updateMessage.toLogMarker)
+                println(s"Completed processing of ${updateMessage.subject} message")
               }.recover {
                 case e: Throwable =>
                   Logger.error(s"Failed to process ${updateMessage.subject} message; message will be ignored:", e)(updateMessage.toLogMarker)

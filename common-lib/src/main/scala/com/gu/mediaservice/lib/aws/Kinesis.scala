@@ -3,6 +3,8 @@ package com.gu.mediaservice.lib.aws
 import java.nio.ByteBuffer
 import java.util.UUID
 
+import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.model.PutRecordRequest
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
 import com.gu.mediaservice.lib.config.CommonConfig
@@ -13,13 +15,20 @@ import play.api.Logger
 import play.api.libs.json.{JodaWrites, Json}
 
 class Kinesis(config: CommonConfig, streamName: String) {
-  lazy val client: AmazonKinesis = config.withAWSCredentials(AmazonKinesisClientBuilder.standard()).build()
+
+  val runLocal = true
+
+  private val builder = AmazonKinesisClientBuilder.standard()
+
+  lazy val client: AmazonKinesis = if(runLocal) config.withLocalSetup(builder).build() else config.withAWSCredentials(builder).build()
 
   def publish(message: UpdateMessage) {
     val partitionKey = UUID.randomUUID().toString
 
     implicit val yourJodaDateWrites = JodaWrites.JodaDateTimeWrites
     implicit val unw = Json.writes[UsageNotice]
+
+    println(s"publish to streamName = $streamName")
 
     val payload = JsonByteArrayUtil.toByteArray(message, withCompression = false)
 
@@ -35,3 +44,4 @@ class Kinesis(config: CommonConfig, streamName: String) {
     Logger.info(s"Published kinesis message: $result")
   }
 }
+

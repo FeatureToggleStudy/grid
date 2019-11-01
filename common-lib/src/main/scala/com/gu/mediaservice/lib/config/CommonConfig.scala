@@ -6,6 +6,7 @@ import java.util.UUID
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, InstanceProfileCredentialsProvider}
 import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import play.api.Configuration
 
 import scala.io.Source._
@@ -43,6 +44,11 @@ trait CommonConfig {
   def withAWSCredentials[T, S <: AwsClientBuilder[S, T]](builder: AwsClientBuilder[S, T]): S = builder
     .withRegion(awsRegion)
     .withCredentials(awsCredentials)
+
+  def withLocalSetup[T, S <: AwsClientBuilder[S, T]](builder: AwsClientBuilder[S, T]): S = {
+    val endpc = new EndpointConfiguration("http://localhost:4568", awsRegion)
+    builder.withEndpointConfiguration(endpc).withCredentials(awsCredentials)
+  }
 
   final val stage: String = stageFromFile getOrElse "DEV"
 

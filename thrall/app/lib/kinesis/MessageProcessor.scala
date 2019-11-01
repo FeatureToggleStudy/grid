@@ -48,8 +48,10 @@ class MessageProcessor(es: ElasticSearchVersion,
     }
   }
 
-  def indexImage(message: UpdateMessage)(implicit ec: ExecutionContext) =
+  def indexImage(message: UpdateMessage)(implicit ec: ExecutionContext) = {
+    println(s"indexImage: $message")
     Future.sequence(withImage(message)(i => es.indexImage(i.id, Json.toJson(message.image.get))))
+  }
 
   def updateImageExports(message: UpdateMessage)(implicit ec: ExecutionContext) = {
     def asJsLookup(cs: Seq[Crop]): JsLookupResult = JsDefined(Json.toJson(cs))
