@@ -21,7 +21,9 @@ class ThrallMessageConsumer(config: ThrallConfig,
   from: Option[DateTime]
 ) extends MessageConsumerVersion {
 
-  val workerId = InetAddress.getLocalHost.getCanonicalHostName + ":" + UUID.randomUUID()
+  private val runLocal = true
+
+  private val workerId = InetAddress.getLocalHost.getCanonicalHostName + ":" + UUID.randomUUID()
 
   private val thrallEventProcessorFactory = new IRecordProcessorFactory {
     override def createProcessor(): IRecordProcessor = {
@@ -31,10 +33,6 @@ class ThrallMessageConsumer(config: ThrallConfig,
       consumer
     }
   }
-
-//  val dynamoClient = AmazonDynamoDBClientBuilder.standard()
-//    .withEndpointConfiguration(new EndpointConfiguration("http://localhost:4569", config.awsRegion))
-//    .build()
 
   private def createBuilder(cfg: KinesisClientLibConfiguration): Worker = {
     new Worker.Builder()
@@ -50,7 +48,11 @@ class ThrallMessageConsumer(config: ThrallConfig,
     from = from
   )
 
-  private val thrallKinesisWorker = createBuilder(kinesisCfg)
+  private val localKinesisCfg = kinesisCfg
+    .withKinesisEndpoint("http://localhost:4568")
+    .withDynamoDBEndpoint("http://localhost:4569")
+
+  private val thrallKinesisWorker = if (runLocal) createBuilder(localKinesisCfg) else createBuilder(kinesisCfg)
 
   private val thrallKinesisWorkerThread = makeThread(thrallKinesisWorker)
 
@@ -74,10 +76,6 @@ class ThrallMessageConsumer(config: ThrallConfig,
       withMaxRecords(100).
       withIdleMillisBetweenCalls(1000).
       withIdleTimeBetweenReadsInMillis(250)
-      .withKinesisEndpoint("http://localhost:4568")
-      .withDynamoDBEndpoint("http://localhost:4569")
-
-    println(s"kinesisConfig, ${kinesisConfig.getKinesisEndpoint}")
 
     from.fold(
       kinesisConfig.withInitialPositionInStream(InitialPositionInStream.TRIM_HORIZON)

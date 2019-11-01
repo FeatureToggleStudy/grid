@@ -105,6 +105,7 @@ changeNodeVersion() {
 }
 
 setupLocalKinesis() {
+  sleep 3s
   # java sdk use CBOR protocol
   # which does not wokr wih localstack kinesis which use kinesislite
   export AWS_CBOR_DISABLE=true
@@ -122,7 +123,7 @@ setupLocalKinesis() {
 
 main() {
     checkRequirements
-    changeNodeVersion
+#    changeNodeVersion
     setupImgops
     downloadApplicationConfig
     startDockerContainers
