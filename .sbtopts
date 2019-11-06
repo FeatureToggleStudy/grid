@@ -1,3 +1,0 @@
--J-Xmx4096M
--J-XX:MaxMetaspaceSize=1024M
--DSTAGE=DEV
